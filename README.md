@@ -108,6 +108,22 @@ Jars land in `build/libs/musicoverlay-<version>+mc<mc>.jar`.
 
 26.1 was the first non-obfuscated Minecraft, so there's no mappings step. The one thing that differs between 26.1.2 and 26.2 is where the HUD's `extractRenderState` hook lives (`Gui` vs the split-out `Hud`), handled by a per-version mixin picked from the `minecraft_version` property.
 
+## Known issues and Linux notes
+
+Most desktop Linux setups just work once `playerctl` is installed. The notes
+below only matter for a few specific setups, so don't worry about them unless
+something isn't showing.
+
+- **playerctl and a D-Bus session are required.** Every normal desktop (GNOME, KDE, XFCE, Cinnamon, and so on) has a session bus, so this is automatic. Launching Minecraft from a bare TTY with no desktop session means there's no media session to read.
+- **Flatpak or Snap Spotify: album art can be blank.** Playback info and controls still work, but sandboxed builds sometimes report the cover as a `file://` path inside the sandbox that Minecraft (running outside it) can't open, so the art square stays empty while title, artist and the progress bar work normally. The native package or the official tarball hands over an `https://` art URL that loads fine. This is the one thing worth knowing about, and it only affects certain packaging.
+- **Browser tabs need MPRIS.** Chromium, Chrome and Firefox expose it for media. On KDE Plasma you may need the "Plasma Browser Integration" extension for browser audio to appear as a player.
+- **playerctl 2.x** or newer is expected; anything from the last few years is fine.
+- Wayland and X11 behave identically here.
+
+Windows and macOS have no equivalent caveats: Windows reads SMTC directly, and
+macOS uses AppleScript for Spotify and the Music app (or `nowplaying-cli` for
+everything else).
+
 ## License
 
 MIT. Do what you like with it.
