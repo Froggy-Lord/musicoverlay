@@ -5,6 +5,8 @@ import com.froggylord.musicoverlay.keybind.Keybinds;
 import com.froggylord.musicoverlay.lyrics.LyricsService;
 import com.froggylord.musicoverlay.media.HelperProcessManager;
 import com.froggylord.musicoverlay.media.NowPlayingBridge;
+import com.froggylord.musicoverlay.spotify.SpotifyConfigManager;
+import com.froggylord.musicoverlay.spotify.SpotifyManager;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,15 +19,18 @@ public class MusicOverlay implements ClientModInitializer {
     private static HelperProcessManager helper;
     private static NowPlayingBridge bridge;
     private static LyricsService lyrics;
+    private static SpotifyManager spotify;
 
     @Override
     public void onInitializeClient() {
         LOG.info("[MusicOverlay] initializing");
         ConfigManager.load();
+        SpotifyConfigManager.load();
 
         helper = new HelperProcessManager();
         bridge = new NowPlayingBridge();
         lyrics = new LyricsService();
+        spotify = new SpotifyManager();
 
         // When the track changes, pull fresh synced lyrics for it.
         bridge.setOnSongChanged(data -> lyrics.fetch(data.title(), data.artist(), data.durationMs()));
@@ -49,5 +54,9 @@ public class MusicOverlay implements ClientModInitializer {
 
     public static LyricsService lyrics() {
         return lyrics;
+    }
+
+    public static SpotifyManager spotify() {
+        return spotify;
     }
 }
