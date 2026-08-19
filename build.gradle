@@ -12,6 +12,19 @@ base {
     archivesName = project.archives_base_name
 }
 
+// The whole mod is shared source except one mixin: the HUD's extractRenderState
+// sits on Gui in 26.1.x and on the split-out Hud class in 26.2. Pick the matching
+// variant so a single tree builds a working jar for either target.
+def mcv = project.minecraft_version.toString()
+def hudVariant = mcv.startsWith('26.1') ? 'src/mc26.1/java' : 'src/mc26.2/java'
+sourceSets {
+    main {
+        java {
+            srcDir hudVariant
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     maven { url = 'https://maven.terraformersmc.com/' }
