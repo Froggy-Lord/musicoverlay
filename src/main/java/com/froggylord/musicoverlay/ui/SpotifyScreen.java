@@ -16,9 +16,11 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 
 /**
- * The Spotify control panel: paste a Client ID, connect, then browse playlists
- * and act on the current track. Reachable from the settings screen and the
- * Spotify keybind. Everything here is optional; the overlay works without it.
+ * The Spotify control panel. When not connected it shows a plain-language
+ * walkthrough (what the feature does, that the login is stored only on this PC,
+ * and that playback control needs Premium) plus the setup steps. Once connected
+ * it becomes the playlist browser and track controls. Reached from the settings
+ * screen, the Spotify keybind, or any Spotify action while not set up.
  */
 public class SpotifyScreen extends Screen {
     private final Screen parent;
@@ -26,7 +28,7 @@ public class SpotifyScreen extends Screen {
     private String status = "";
     private boolean requestedPlaylists = false;
 
-    // playlist list geometry
+    // playlist list geometry (connected view)
     private int listTop, listBottom, listX, listW;
     private static final int ROW_H = 22;
     private int scroll = 0;
@@ -41,86 +43,113 @@ public class SpotifyScreen extends Screen {
 
     @Override
     protected void init() {
-        SpotifyConfig c = cfg();
         int cx = this.width / 2;
 
-        clientIdBox = new EditBox(this.font, cx - 150, 44, 300, 18, Component.literal("Client ID"));
-        clientIdBox.setMaxLength(64);
-        clientIdBox.setHint(Component.literal("Paste your Spotify app Client ID"));
-        clientIdBox.setValue(c.clientId);
-        clientIdBox.setResponder(v -> {
-            c.clientId = v.trim();
-            SpotifyConfigManager.save();
-        });
-        addRenderableWidget(clientIdBox);
-
         if (sp().isConnected()) {
-            addRenderableWidget(Button.builder(Component.literal("Like"), b -> sp().toggleLikeCurrent())
-                    .bounds(cx - 150, 68, 72, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Queue"), b -> sp().addCurrentToQueue())
-                    .bounds(cx - 74, 68, 72, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("◀ Prev"), b -> sp().previous())
-                    .bounds(cx + 2, 68, 72, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Skip ▶"), b -> sp().next())
-                    .bounds(cx + 78, 68, 72, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Refresh"),
-                            b -> sp().refreshPlaylists(this::rebuildWidgets))
-                    .bounds(cx - 150, 92, 148, 20).build());
-            addRenderableWidget(Button.builder(Component.literal("Disconnect"), b -> {
-                        sp().disconnect();
-                        rebuildWidgets();
-                    }).bounds(cx + 2, 92, 148, 20).build());
+            initConnected(cx);
         } else {
-            addRenderableWidget(Button.builder(Component.literal("Connect Spotify"),
-                            b -> sp().beginAuth(s -> { this.status = s; }))
-                    .bounds(cx - 150, 68, 300, 20).build());
+            initWalkthrough(cx);
         }
 
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
+        addRenderableWidget(Button.builder(Component.literal(sp().isConnected() ? "Done" : "Not now"),
+                        b -> onClose())
                 .bounds(cx - 50, this.height - 26, 100, 20).build());
+    }
+
+    private void initWalkthrough(int cx) {
+        SpotifyConfig c = cfg();
+        // Step 2 row: copy the redirect URI (button sits on the "Add Redirect URI" line).
+        addRenderableWidget(Button.builder(Component.literal("Copy"), b -> {
+                    if (this.minecraft != null) this.minecraft.keyboardHandler.setClipboard(c.redirectUri());
+                    status = "Redirect URI copied to clipboard.";
+                }).bounds(cx + 92, 145, 58, 18).build());
+
+        // Step 3: Client ID field.
+        clientIdBox = new EditBox(this.font, cx - 150, 205, 300, 18, Component.literal("Client ID"));
+        clientIdBox.setMaxLength(64);
+        clientIdBox.setHint(Component.literal("Paste your Spotify app Client ID here"));
+        clientIdBox.setValue(c.clientId);
+        clientIdBox.setResponder(v -> { c.clientId = v.trim(); SpotifyConfigManager.save(); });
+        addRenderableWidget(clientIdBox);
+
+        // Step 4: connect.
+        addRenderableWidget(Button.builder(Component.literal("Connect Spotify"),
+                        b -> sp().beginAuth(s -> this.status = s))
+                .bounds(cx - 150, 236, 300, 20).build());
+    }
+
+    private void initConnected(int cx) {
+        addRenderableWidget(Button.builder(Component.literal("Like"), b -> sp().toggleLikeCurrent())
+                .bounds(cx - 150, 44, 72, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Queue"), b -> sp().addCurrentToQueue())
+                .bounds(cx - 74, 44, 72, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("◀ Prev"), b -> sp().previous())
+                .bounds(cx + 2, 44, 72, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Skip ▶"), b -> sp().next())
+                .bounds(cx + 78, 44, 72, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Refresh"),
+                        b -> sp().refreshPlaylists(this::rebuildWidgets))
+                .bounds(cx - 150, 68, 148, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Disconnect"), b -> {
+                    sp().disconnect();
+                    rebuildWidgets();
+                }).bounds(cx + 2, 68, 148, 20).build());
 
         listX = cx - 150;
         listW = 300;
-        listTop = 120;
+        listTop = 118;
         listBottom = this.height - 34;
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
         super.extractRenderState(g, mouseX, mouseY, delta);
-        int cx = this.width / 2;
         center(g, "§bSpotify", 16);
-
-        if (!sp().isConnected() && !cfg().hasClientId()) {
-            // First-run help.
-            small(g, "1. Create an app at developer.spotify.com/dashboard", cx - 150, 116);
-            small(g, "2. Add this Redirect URI to it:", cx - 150, 128);
-            g.text(this.font, "§a" + cfg().redirectUri(), cx - 150, 140, 0xFFFFFFFF, false);
-            small(g, "3. Paste the app's Client ID above, then Connect.", cx - 150, 152);
-            if (!status.isBlank()) g.text(this.font, "§7" + status, cx - 150, 168, 0xFFFFFFFF, false);
-            return;
+        if (sp().isConnected()) {
+            renderConnected(g, mouseX, mouseY);
+        } else {
+            renderWalkthrough(g);
         }
+    }
 
-        if (!sp().isConnected()) {
-            small(g, "Redirect URI (must be registered in your app):", cx - 150, 96);
-            g.text(this.font, "§a" + cfg().redirectUri(), cx - 150, 108, 0xFFFFFFFF, false);
-            if (!status.isBlank()) g.text(this.font, "§7" + status, cx - 150, 124, 0xFFFFFFFF, false);
-            return;
+    private void renderWalkthrough(GuiGraphicsExtractor g) {
+        int x = this.width / 2 - 150;
+
+        line(g, "§fWhat this does", x, 30);
+        line(g, "§7Browse playlists, add the current song, like, queue, skip,", x, 41);
+        line(g, "§7and play whole playlists, all from in game.", x, 51);
+
+        line(g, "§e♥ Stored on this PC only", x, 66);
+        line(g, "§7Your login is saved locally in config/musicoverlay-spotify.json", x, 77);
+        line(g, "§7and is only ever sent to Spotify. No server, nothing shared.", x, 87);
+
+        line(g, "§6★ Spotify Premium needed for playback control", x, 102);
+        line(g, "§7Skip, queue and play-a-playlist require Premium (Spotify's rule).", x, 113);
+        line(g, "§7Browsing and adding to playlists work on a free account too.", x, 123);
+
+        // Setup steps
+        line(g, "§b1  §7Create an app at developer.spotify.com/dashboard", x, 133);
+        line(g, "§b2  §7Add this Redirect URI to the app:", x, 147);
+        line(g, "§a" + cfg().redirectUri(), x, 159);
+        line(g, "§b3  §7Paste your Client ID below", x, 192);
+        line(g, "§b4  §7Then click Connect", x, 224);
+
+        if (!status.isBlank()) {
+            g.text(this.font, "§7" + status, x, this.height - 42, 0xFFFFFFFF, false);
         }
+    }
 
-        // Connected: fetch playlists once, then draw them.
+    private void renderConnected(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         if (!requestedPlaylists) {
             requestedPlaylists = true;
             sp().refreshPlaylists(null);
             sp().refreshPlayback(null);
         }
-
         var pb = sp().cachedPlayback();
         String now = pb != null && pb.hasTrack()
                 ? "Now: " + pb.title() + " · " + pb.artist() + (pb.isSaved() ? "  ♥" : "")
                 : "Nothing playing (open Spotify on a device)";
-        g.text(this.font, "§7" + Draw.fit(this.font, now, listW), listX, 114, 0xFFFFFFFF, false);
-
+        g.text(this.font, "§7" + Draw.fit(this.font, now, listW), listX, 100, 0xFFFFFFFF, false);
         drawPlaylists(g, mouseX, mouseY);
     }
 
@@ -138,8 +167,7 @@ public class SpotifyScreen extends Screen {
                 boolean hover = mouseX >= listX && mouseX <= listX + listW && mouseY >= y && mouseY < y + ROW_H;
                 g.fill(listX, y, listX + listW, y + ROW_H, hover ? 0x3020C060 : 0x20FFFFFF);
                 boolean isQuick = p.id().equals(quickId);
-                String star = isQuick ? "§e★" : "§8☆";
-                g.text(this.font, star, listX + 6, y + 7, 0xFFFFFFFF, false);
+                g.text(this.font, isQuick ? "§e★" : "§8☆", listX + 6, y + 7, 0xFFFFFFFF, false);
                 g.text(this.font, Draw.fit(this.font, p.name(), listW - 90), listX + 20, y + 3, 0xFFFFFFFF, false);
                 g.text(this.font, "§7" + p.trackCount() + " tracks", listX + 20, y + 12, 0xFFFFFFFF, false);
                 g.text(this.font, "§a[+add]", listX + listW - 44, y + 7, 0xFFFFFFFF, false);
@@ -158,10 +186,10 @@ public class SpotifyScreen extends Screen {
                 if (idx >= 0 && idx < lists.size()) {
                     SpotifyPlaylist p = lists.get(idx);
                     if (mx <= listX + 18) {
-                        // star column: set as quick-add
                         cfg().quickAddPlaylistId = p.id();
                         cfg().quickAddPlaylistName = p.name();
                         SpotifyConfigManager.save();
+                        status = "Quick-add playlist set to " + p.name();
                     } else if (mx >= listX + listW - 46) {
                         sp().addCurrentToPlaylist(p);
                     } else {
@@ -190,13 +218,24 @@ public class SpotifyScreen extends Screen {
         g.text(this.font, text, this.width / 2 - this.font.width(plain) / 2, y, 0xFFFFFFFF, true);
     }
 
-    private void small(GuiGraphicsExtractor g, String text, int x, int y) {
-        g.text(this.font, "§7" + text, x, y, 0xFFFFFFFF, false);
+    private void line(GuiGraphicsExtractor g, String text, int x, int y) {
+        g.text(this.font, text, x, y, 0xFFFFFFFF, false);
     }
 
     @Override
     public void onClose() {
         SpotifyConfigManager.save();
         if (this.minecraft != null) this.minecraft.setScreenAndShow(parent);
+    }
+
+    /** Opens this screen only when Spotify features are triggered without setup. */
+    public static void openFor(Runnable ifConnected) {
+        SpotifyManager sp = MusicOverlay.spotify();
+        if (sp.isConnected()) {
+            ifConnected.run();
+        } else {
+            net.minecraft.client.Minecraft.getInstance()
+                    .setScreenAndShow(new SpotifyScreen(null));
+        }
     }
 }

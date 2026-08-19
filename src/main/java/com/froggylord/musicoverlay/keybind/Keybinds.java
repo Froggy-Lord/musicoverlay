@@ -50,10 +50,12 @@ public final class Keybinds {
             while (playPause.consumeClick()) MediaControls.playPause();
             while (next.consumeClick()) MediaControls.next();
             while (previous.consumeClick()) MediaControls.previous();
+            // Spotify actions open the setup walkthrough if you haven't connected yet,
+            // so any attempt to use them explains what's needed first.
             while (spotifyMenu.consumeClick()) client.setScreenAndShow(new SpotifyScreen(null));
-            while (spotifyAdd.consumeClick()) MusicOverlay.spotify().quickAddCurrent();
-            while (spotifyLike.consumeClick()) MusicOverlay.spotify().toggleLikeCurrent();
-            while (spotifyQueue.consumeClick()) MusicOverlay.spotify().addCurrentToQueue();
+            while (spotifyAdd.consumeClick()) SpotifyScreen.openFor(() -> MusicOverlay.spotify().quickAddCurrent());
+            while (spotifyLike.consumeClick()) SpotifyScreen.openFor(() -> MusicOverlay.spotify().toggleLikeCurrent());
+            while (spotifyQueue.consumeClick()) SpotifyScreen.openFor(() -> MusicOverlay.spotify().addCurrentToQueue());
         });
     }
 
