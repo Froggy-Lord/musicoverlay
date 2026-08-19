@@ -17,6 +17,7 @@ No account linking, no API keys, no Spotify Premium requirement. If your OS know
 - Nine-point anchoring plus drag-to-place, so it sits exactly where you want at any GUI scale.
 - Full colour theming through hex fields, per-element toggles, scale, opacity, rounded corners.
 - Settings screen built in, and a ModMenu config button if you have ModMenu.
+- Optional Spotify layer: browse playlists, add the current song to a playlist, like, queue, and start playlists from in game (needs a free Client ID; playback control needs Premium).
 
 ## Supported versions
 
@@ -58,6 +59,30 @@ Open **Options -> Controls -> Music Overlay** to bind keys (all unbound by defau
 Everything else lives in the settings screen, split into General, Layout, Elements, Lyrics and Colors. Changes save the moment you make them.
 
 The config file is `config/musicoverlay.json` if you'd rather edit it by hand. Colours there are `#AARRGGBB`.
+
+## Spotify controls (optional)
+
+The overlay works with any player and needs no account. If you use Spotify and
+want to do more than play/pause from in game, there's an optional layer that
+talks to the Spotify Web API: browse your playlists, add the current song to a
+playlist (or a one-key "quick add" playlist), like a track, add it to the queue,
+skip, and start a whole playlist.
+
+None of this is required. The overlay itself never asks for a login.
+
+To turn it on you need a **free Spotify Developer Client ID** (playback control
+like skip/queue/play also needs **Spotify Premium**, which is Spotify's rule, not
+this mod's):
+
+1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and create an app.
+2. In the app settings, add this exact Redirect URI: `http://127.0.0.1:54321/callback`
+3. Copy the app's Client ID.
+4. In game, open the Spotify menu (settings screen button or its keybind), paste the Client ID, and hit Connect. Approve access in the browser tab that opens, then close it.
+
+Auth uses Authorization Code with PKCE, so there's no client secret and nothing
+sensitive is stored beyond the tokens Spotify hands back (kept in
+`config/musicoverlay-spotify.json`). Skip/queue/play need Spotify open on some
+device, since the Web API drives whatever your account is actively playing on.
 
 ## How it works
 
