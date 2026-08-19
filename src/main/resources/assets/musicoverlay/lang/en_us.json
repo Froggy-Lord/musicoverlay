@@ -5,5 +5,9 @@
     "key.musicoverlay.reposition": "Reposition Overlay",
     "key.musicoverlay.play_pause": "Play / Pause",
     "key.musicoverlay.next": "Next Track",
-    "key.musicoverlay.previous": "Previous Track"
+    "key.musicoverlay.previous": "Previous Track",
+    "key.musicoverlay.spotify_menu": "Open Spotify Menu",
+    "key.musicoverlay.spotify_add": "Add Song to Quick Playlist",
+    "key.musicoverlay.spotify_like": "Like / Unlike Song",
+    "key.musicoverlay.spotify_queue": "Add Song to Queue"
 }

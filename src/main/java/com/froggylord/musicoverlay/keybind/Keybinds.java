@@ -1,9 +1,11 @@
 package com.froggylord.musicoverlay.keybind;
 
+import com.froggylord.musicoverlay.MusicOverlay;
 import com.froggylord.musicoverlay.config.ConfigManager;
 import com.froggylord.musicoverlay.media.MediaControls;
 import com.froggylord.musicoverlay.ui.RepositionScreen;
 import com.froggylord.musicoverlay.ui.SettingsScreen;
+import com.froggylord.musicoverlay.ui.SpotifyScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -29,6 +31,10 @@ public final class Keybinds {
         KeyMapping playPause = register("play_pause");
         KeyMapping next = register("next");
         KeyMapping previous = register("previous");
+        KeyMapping spotifyMenu = register("spotify_menu");
+        KeyMapping spotifyAdd = register("spotify_add");
+        KeyMapping spotifyLike = register("spotify_like");
+        KeyMapping spotifyQueue = register("spotify_queue");
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (settings.consumeClick()) {
@@ -44,6 +50,10 @@ public final class Keybinds {
             while (playPause.consumeClick()) MediaControls.playPause();
             while (next.consumeClick()) MediaControls.next();
             while (previous.consumeClick()) MediaControls.previous();
+            while (spotifyMenu.consumeClick()) client.setScreenAndShow(new SpotifyScreen(null));
+            while (spotifyAdd.consumeClick()) MusicOverlay.spotify().quickAddCurrent();
+            while (spotifyLike.consumeClick()) MusicOverlay.spotify().toggleLikeCurrent();
+            while (spotifyQueue.consumeClick()) MusicOverlay.spotify().addCurrentToQueue();
         });
     }
 

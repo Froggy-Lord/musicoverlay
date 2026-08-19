@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+// SpotifyScreen is in this same package.
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,9 @@ public class SettingsScreen extends Screen {
         toggle(col(1), y, "Media controls", () -> c.enableMediaControls, v -> c.enableMediaControls = v);
         y += step;
         toggle(x, y, "Fetch lyrics online", () -> c.fetchLyricsOnline, v -> c.fetchLyricsOnline = v);
+        addRenderableWidget(Button.builder(Component.literal("Spotify controls…"),
+                        b -> this.minecraft.setScreenAndShow(new SpotifyScreen(this)))
+                .bounds(col(1), y, 150, 20).build());
     }
 
     private void buildLayout(int y) {
