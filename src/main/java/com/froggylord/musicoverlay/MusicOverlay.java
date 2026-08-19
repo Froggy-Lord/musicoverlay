@@ -1,6 +1,7 @@
 package com.froggylord.musicoverlay;
 
 import com.froggylord.musicoverlay.config.ConfigManager;
+import com.froggylord.musicoverlay.lyrics.LyricsService;
 import com.froggylord.musicoverlay.media.HelperProcessManager;
 import com.froggylord.musicoverlay.media.NowPlayingBridge;
 import net.fabricmc.api.ClientModInitializer;
@@ -14,6 +15,7 @@ public class MusicOverlay implements ClientModInitializer {
 
     private static HelperProcessManager helper;
     private static NowPlayingBridge bridge;
+    private static LyricsService lyrics;
 
     @Override
     public void onInitializeClient() {
@@ -22,6 +24,10 @@ public class MusicOverlay implements ClientModInitializer {
 
         helper = new HelperProcessManager();
         bridge = new NowPlayingBridge();
+        lyrics = new LyricsService();
+
+        // When the track changes, pull fresh synced lyrics for it.
+        bridge.setOnSongChanged(data -> lyrics.fetch(data.title(), data.artist(), data.durationMs()));
 
         helper.start();
         bridge.start();
@@ -36,5 +42,9 @@ public class MusicOverlay implements ClientModInitializer {
 
     public static NowPlayingBridge bridge() {
         return bridge;
+    }
+
+    public static LyricsService lyrics() {
+        return lyrics;
     }
 }

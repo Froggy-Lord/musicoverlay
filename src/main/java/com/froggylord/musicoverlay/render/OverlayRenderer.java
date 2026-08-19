@@ -4,6 +4,7 @@ import com.froggylord.musicoverlay.MusicOverlay;
 import com.froggylord.musicoverlay.config.ConfigManager;
 import com.froggylord.musicoverlay.config.LayoutMode;
 import com.froggylord.musicoverlay.config.OverlayConfig;
+import com.froggylord.musicoverlay.lyrics.RenderLyric;
 import com.froggylord.musicoverlay.media.NowPlaying;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -59,6 +60,57 @@ public final class OverlayRenderer {
         g.pose().translate(rx, ry);
         g.pose().scale(scale, scale);
         drawCard(g, font, c, data, boxW, boxH, titleLines, artistLines);
+        g.pose().popMatrix();
+
+        if (c.showLyrics && MusicOverlay.lyrics() != null && MusicOverlay.lyrics().hasLyrics()) {
+            drawLyrics(g, font, c, data, boxW, scale);
+        }
+    }
+
+    private static void drawLyrics(GuiGraphicsExtractor g, Font font, OverlayConfig c, NowPlaying data,
+                                   int boxW, float scale) {
+        long pos = data.estimatedPositionMs() + c.lyricsOffsetMs;
+        List<RenderLyric> window = MusicOverlay.lyrics().window(pos, c.lyricsLines);
+        if (window.isEmpty()) return;
+
+        int textW = boxW - PAD * 2;
+        int lh = font.lineHeight + 1;
+
+        // Wrap each lyric line, remembering which wrapped rows are the active one.
+        List<String> rows = new ArrayList<>();
+        List<Boolean> active = new ArrayList<>();
+        for (RenderLyric line : window) {
+            List<String> wrapped = wrap(font, line.text(), textW, 2);
+            if (wrapped.isEmpty()) wrapped.add("");
+            for (String r : wrapped) {
+                rows.add(r);
+                active.add(line.active());
+            }
+        }
+
+        int boxH = PAD + rows.size() * lh + PAD - 1;
+        int realH = Math.round(boxH * scale);
+        int gap = Math.round(4 * scale);
+        int rx = lastX;
+        int ry = c.lyricsPlacement == com.froggylord.musicoverlay.config.LyricsPlacement.ABOVE
+                ? lastY - realH - gap
+                : lastY + lastH + gap;
+
+        g.pose().pushMatrix();
+        g.pose().translate(rx, ry);
+        g.pose().scale(scale, scale);
+
+        int bg = Draw.withOpacity(c.backgroundColor, c.opacity * 0.9f);
+        Draw.roundedRect(g, 0, 0, boxW, boxH, bg, c.roundedCorners);
+
+        int y = PAD;
+        for (int i = 0; i < rows.size(); i++) {
+            int col = Draw.withOpacity(active.get(i) ? c.lyricsActiveColor : c.lyricsInactiveColor, c.opacity);
+            String text = rows.get(i);
+            int x = c.lyricsCentered ? (boxW - font.width(text)) / 2 : PAD;
+            g.text(font, text, x, y, col, c.textShadow);
+            y += lh;
+        }
         g.pose().popMatrix();
     }
 
