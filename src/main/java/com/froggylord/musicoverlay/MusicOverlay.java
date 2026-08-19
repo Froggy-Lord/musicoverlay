@@ -1,6 +1,7 @@
 package com.froggylord.musicoverlay;
 
 import com.froggylord.musicoverlay.config.ConfigManager;
+import com.froggylord.musicoverlay.keybind.Keybinds;
 import com.froggylord.musicoverlay.lyrics.LyricsService;
 import com.froggylord.musicoverlay.media.HelperProcessManager;
 import com.froggylord.musicoverlay.media.NowPlayingBridge;
@@ -28,6 +29,8 @@ public class MusicOverlay implements ClientModInitializer {
 
         // When the track changes, pull fresh synced lyrics for it.
         bridge.setOnSongChanged(data -> lyrics.fetch(data.title(), data.artist(), data.durationMs()));
+
+        Keybinds.init();
 
         helper.start();
         bridge.start();
