@@ -1,0 +1,64 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+// Jar version carries the Minecraft target so the two builds never clobber each
+// other in build/libs (musicoverlay-1.0.0+mc26.2.jar, ...+mc26.1.2.jar).
+version = "${project.mod_version}+mc${project.minecraft_version}"
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 26.1 was the first non-obfuscated Minecraft: no mappings line, loom builds
+    // against the real names.
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+loom {
+    runs {
+        client {
+            client()
+            configName = "Music Overlay Client"
+            ideConfigGenerated = true
+            runDir = "run"
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.mod_version
+    inputs.property "minecraft_version", project.minecraft_version
+
+    filesMatching("fabric.mod.json") {
+        expand(
+            "version": project.mod_version,
+            "minecraft_version": project.minecraft_version
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archives_base_name}" }
+    }
+}

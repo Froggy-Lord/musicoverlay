@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "id": "musicoverlay",
+    "version": "${version}",
+    "name": "Music Overlay",
+    "description": "Shows whatever you're playing (Spotify, YouTube, anything with media keys) as a clean in-game overlay, with album art, a live progress bar and time-synced lyrics. Fully themeable and repositionable.",
+    "authors": ["Froggy__Lord"],
+    "contact": {
+        "homepage": "https://github.com/Froggy-Lord/musicoverlay",
+        "sources": "https://github.com/Froggy-Lord/musicoverlay",
+        "issues": "https://github.com/Froggy-Lord/musicoverlay/issues"
+    },
+    "license": "MIT",
+    "icon": "assets/musicoverlay/icon.png",
+    "environment": "client",
+    "entrypoints": {
+        "client": ["com.froggylord.musicoverlay.MusicOverlay"],
+        "modmenu": ["com.froggylord.musicoverlay.compat.ModMenuIntegration"]
+    },
+    "mixins": ["musicoverlay.mixins.json"],
+    "depends": {
+        "fabricloader": ">=0.19.0",
+        "minecraft": ">=26.1",
+        "java": ">=25",
+        "fabric-api": "*"
+    },
+    "suggests": {
+        "modmenu": "*"
+    }
+}

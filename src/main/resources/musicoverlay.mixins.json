@@ -1,0 +1,11 @@
+{
+    "required": true,
+    "package": "com.froggylord.musicoverlay.mixin",
+    "compatibilityLevel": "JAVA_25",
+    "client": [
+        "HudRenderMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}
