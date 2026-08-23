@@ -37,7 +37,8 @@ public final class OverlayRenderer {
         NowPlaying data = MusicOverlay.bridge().current();
         if (!shouldShow(c, data)) return;
 
-        ART.sync(data);
+        if (showsArt(c)) ART.sync(data);
+        else ART.clear();
         draw(g, font, c, data, screenW, screenH, true);
     }
 
