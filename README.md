@@ -23,6 +23,7 @@ No account linking, no API keys, no Spotify Premium requirement. If your OS know
 
 | Minecraft | Loader | Fabric API |
 |-----------|--------|------------|
+| 26.3      | 0.19+  | required   |
 | 26.2      | 0.19+  | required   |
 | 26.1.2    | 0.19+  | required   |
 
@@ -100,13 +101,13 @@ The helper writes `nowplaying.json` (title, artist, position, art path, and so o
 Java 25 is required (Minecraft 26.x needs it).
 
 ```
-./gradlew build                 # builds the default target (26.2)
+./gradlew build                 # builds the default target (26.3)
 ./build-all.sh                  # builds a jar for every supported version
 ```
 
 Jars land in `build/libs/musicoverlay-<version>+mc<mc>.jar`.
 
-26.1 was the first non-obfuscated Minecraft, so there's no mappings step. The one thing that differs between 26.1.2 and 26.2 is where the HUD's `extractRenderState` hook lives (`Gui` vs the split-out `Hud`), handled by a per-version mixin picked from the `minecraft_version` property.
+26.1 was the first non-obfuscated Minecraft, so there's no mappings step. The HUD's `extractRenderState` hook lives on `Gui` in 26.1.2 and on the split-out `Hud` in 26.2/26.3, handled by a per-version mixin picked from the `minecraft_version` property. Input uses Minecraft's unknown-key and left-button constants so the same controls work with GLFW in 26.1/26.2 and SDL in 26.3.
 
 ## Known issues and Linux notes
 
