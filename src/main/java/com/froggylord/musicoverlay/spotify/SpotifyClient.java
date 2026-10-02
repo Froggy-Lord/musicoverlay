@@ -49,7 +49,7 @@ public final class SpotifyClient {
             if (artists != null && artists.size() > 0) {
                 artist = str(artists.get(0).getAsJsonObject(), "name");
             }
-            boolean saved = id != null && isSaved(id);
+            boolean saved = uri != null && !uri.isBlank() && isSaved(uri);
             return new PlaybackState(uri, id, title, artist, saved);
         });
     }
@@ -79,7 +79,7 @@ public final class SpotifyClient {
 
     public CompletableFuture<Boolean> addToPlaylist(String playlistId, String trackUri) {
         return CompletableFuture.supplyAsync(() -> ok(send("POST",
-                "/playlists/" + playlistId + "/tracks",
+                "/playlists/" + playlistId + "/items",
                 "{\"uris\":[\"" + trackUri + "\"]}")));
     }
 
@@ -102,15 +102,15 @@ public final class SpotifyClient {
                 "{\"context_uri\":\"" + contextUri + "\"}")));
     }
 
-    public CompletableFuture<Boolean> setSaved(String trackId, boolean saved) {
+    public CompletableFuture<Boolean> setSaved(String trackUri, boolean saved) {
         return CompletableFuture.supplyAsync(() ->
-                ok(send(saved ? "PUT" : "DELETE", "/me/tracks?ids=" + enc(trackId), "")));
+                ok(send(saved ? "PUT" : "DELETE", "/me/library?uris=" + enc(trackUri), "")));
     }
 
     // ---- internals ----
 
-    private boolean isSaved(String trackId) {
-        HttpResponse<String> res = send("GET", "/me/tracks/contains?ids=" + enc(trackId), null);
+    private boolean isSaved(String trackUri) {
+        HttpResponse<String> res = send("GET", "/me/library/contains?uris=" + enc(trackUri), null);
         if (res == null || res.statusCode() / 100 != 2) return false;
         try {
             JsonArray arr = JsonParser.parseString(res.body()).getAsJsonArray();
@@ -143,7 +143,7 @@ public final class SpotifyClient {
             b.method(method, pub);
             HttpResponse<String> res = http.send(b.build(), HttpResponse.BodyHandlers.ofString());
             if (res.statusCode() == 403) {
-                LOG.warn("[MusicOverlay] Spotify refused {} {} (Premium required for playback control?)", method, path);
+                LOG.warn("[MusicOverlay] Spotify refused {} {} (HTTP 403: check endpoint compatibility, app mode, and scopes)", method, path);
             } else if (res.statusCode() == 404 && path.startsWith("/me/player")) {
                 LOG.warn("[MusicOverlay] no active Spotify device - open Spotify on any device first.");
             }

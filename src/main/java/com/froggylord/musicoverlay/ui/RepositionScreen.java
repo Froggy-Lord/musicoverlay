@@ -5,6 +5,7 @@ import com.froggylord.musicoverlay.config.ConfigManager;
 import com.froggylord.musicoverlay.config.OverlayConfig;
 import com.froggylord.musicoverlay.media.NowPlaying;
 import com.froggylord.musicoverlay.render.OverlayRenderer;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -47,7 +48,7 @@ public class RepositionScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             int x = OverlayRenderer.lastX(), y = OverlayRenderer.lastY();
             int x2 = x + OverlayRenderer.lastW(), y2 = y + OverlayRenderer.lastH();
             if (event.x() >= x - 2 && event.x() <= x2 + 2 && event.y() >= y - 2 && event.y() <= y2 + 2) {

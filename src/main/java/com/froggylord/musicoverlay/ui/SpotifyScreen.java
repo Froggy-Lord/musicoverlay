@@ -6,6 +6,7 @@ import com.froggylord.musicoverlay.spotify.SpotifyConfig;
 import com.froggylord.musicoverlay.spotify.SpotifyConfigManager;
 import com.froggylord.musicoverlay.spotify.SpotifyManager;
 import com.froggylord.musicoverlay.spotify.SpotifyPlaylist;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -97,8 +98,8 @@ public class SpotifyScreen extends Screen {
 
         listX = cx - 150;
         listW = 300;
-        listTop = 118;
-        listBottom = this.height - 34;
+        listTop = 126;
+        listBottom = this.height - 48;
     }
 
     @Override
@@ -146,10 +147,17 @@ public class SpotifyScreen extends Screen {
             sp().refreshPlayback(null);
         }
         var pb = sp().cachedPlayback();
+        String quick = cfg().quickAddPlaylistName.isBlank()
+                ? "Quick add: not selected — click ☆ beside a playlist"
+                : "Quick add: " + cfg().quickAddPlaylistName + "  ★";
+        g.text(this.font, "§e" + Draw.fit(this.font, quick, listW), listX, 94, 0xFFFFFFFF, false);
         String now = pb != null && pb.hasTrack()
                 ? "Now: " + pb.title() + " · " + pb.artist() + (pb.isSaved() ? "  ♥" : "")
                 : "Nothing playing (open Spotify on a device)";
-        g.text(this.font, "§7" + Draw.fit(this.font, now, listW), listX, 100, 0xFFFFFFFF, false);
+        g.text(this.font, "§7" + Draw.fit(this.font, now, listW), listX, 106, 0xFFFFFFFF, false);
+        if (!status.isBlank()) {
+            g.text(this.font, "§a" + Draw.fit(this.font, status, listW), listX, this.height - 42, 0xFFFFFFFF, false);
+        }
         drawPlaylists(g, mouseX, mouseY);
     }
 
@@ -178,7 +186,7 @@ public class SpotifyScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean dbl) {
-        if (sp().isConnected() && event.button() == 0) {
+        if (sp().isConnected() && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             double mx = event.x(), my = event.y();
             if (mx >= listX && mx <= listX + listW && my >= listTop && my <= listBottom) {
                 List<SpotifyPlaylist> lists = sp().cachedPlaylists();

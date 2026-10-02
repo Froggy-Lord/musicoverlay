@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * All keybinds are unbound by default so the mod never fights an existing key.
@@ -62,8 +61,8 @@ public final class Keybinds {
     private static KeyMapping register(String id) {
         KeyMapping key = new KeyMapping(
                 "key.musicoverlay." + id,
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_UNKNOWN,
+                InputConstants.UNKNOWN.getType(),
+                InputConstants.UNKNOWN.getValue(),
                 CATEGORY);
         KeyMappingHelper.registerKeyMapping(key);
         return key;
