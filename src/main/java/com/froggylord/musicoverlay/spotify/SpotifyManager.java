@@ -91,9 +91,9 @@ public final class SpotifyManager {
     public void toggleLikeCurrent() {
         if (notConnected()) return;
         client.currentPlayback().thenAccept(state -> {
-            if (state == null || state.trackId().isBlank()) { notify("Nothing is playing."); return; }
-            boolean target = !state.isSaved();
-            client.setSaved(state.trackId(), target).thenAccept(ok ->
+        if (state == null || state.trackUri().isBlank()) { notify("Nothing is playing."); return; }
+        boolean target = !state.isSaved();
+        client.setSaved(state.trackUri(), target).thenAccept(ok ->
                     notify(ok ? (target ? "Liked \"" + state.title() + "\"" : "Removed from Liked Songs")
                               : "Couldn't update Liked Songs."));
         });
